@@ -54,7 +54,7 @@ show_spinner() {
     local delay=0.1
     local spinstr=$SPINNER_CHARS
     tput civis
-    while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
+    while kill -0 "$pid" 2>/dev/null; do
         local temp=${spinstr#?}
         printf " [%c]  " "$spinstr"
         local spinstr=$temp${spinstr%"$temp"}
@@ -250,9 +250,8 @@ log_step "Installing base tools & security packages..."
     curl ca-certificates gnupg lsb-release \
     build-essential git \
     ufw fail2ban \
-    auditd acct haveged \
+    auditd acct \
     python3 python3-pip \
-    snapd \
     unattended-upgrades \
     logrotate \
     htop iotop iftop \
@@ -260,8 +259,8 @@ log_step "Installing base tools & security packages..."
     net-tools dnsutils unzip wget) > /dev/null 2>&1 &
 show_spinner $!
 
-log_step "Enabling audit & entropy services..."
-systemctl enable --now auditd acct haveged > /dev/null 2>&1
+log_step "Enabling audit services..."
+systemctl enable --now auditd acct > /dev/null 2>&1
 log_success "Base packages & Audit tools installed"
 
 #-------------------------------------------------------------------------------
@@ -447,9 +446,11 @@ if [ "$DEPLOY_GIT" = "y" ]; then
     log_info "Cloning repository..."
     if [ -n "$GIT_TOKEN" ]; then
         AUTH_URL=$(echo "$GIT_URL" | sed "s|https://|https://${GIT_TOKEN}@|")
-        git clone "$AUTH_URL" . || git pull origin main
+        # Use shallow clone for faster deployment
+        git clone --depth 1 "$AUTH_URL" . || git pull origin main
     else
-        git clone "$GIT_URL" . || git pull origin main
+        # Use shallow clone for faster deployment
+        git clone --depth 1 "$GIT_URL" . || git pull origin main
     fi
     
     # Generate secrets
