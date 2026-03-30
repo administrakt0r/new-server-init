@@ -36,7 +36,7 @@
 Run the following command on your fresh Debian 12/13 server:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/administrakt0r/fresh-server-init/main/setup.sh | sudo bash
+curl -sSL https://raw.githubusercontent.com/administrakt0r/new-server-init/main/setup.sh | sudo bash
 ```
 
 ### 📋 Interactive Menu
